@@ -1,0 +1,167 @@
+---
+# TODO these should be added by another task outside of this role
+- name: Install podman and basic tools
+  ansible.builtin.yum:
+    name:
+      - podman
+#      - docker
+#      - wget
+#      - git
+#      - vim
+    state: present
+
+- name: Set timezone to UTC
+  community.general.timezone:
+    name: UTC
+  tags:
+    - tz
+
+- name: Create peering firewalld zone
+  ansible.posix.firewalld:
+    zone: "{{ firewalld_zone }}"
+    permanent: true
+    state: present
+  tags:
+    - fw
+
+- name: Permit BGP in peering firewalld zone
+  ansible.posix.firewalld:
+    zone: "{{ firewalld_zone }}"
+    service: bgp
+    permanent: true
+    state: enabled
+  tags:
+    - fw
+
+- name: Create logrotate config for BIRD log file
+  ansible.builtin.copy:
+    dest: /etc/logrotate.d/bird
+    content: |
+      /srv/fullctl/rs/bird/var/log/bird.log {
+          maxsize "{{ rs_log_maxsize }}"
+          weekly
+          rotate 4
+          nocompress
+          copytruncate
+      }
+  tags:
+    - logrotate
+
+- name: Copy birdc.sh script to remote host
+  become: false
+  ansible.builtin.copy:
+    src: birdc.sh
+    dest: birdc.sh
+    mode: '0755'
+  tags:
+    - birdc
+
+- name: Configure additional directories in /srv
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - /srv/fullctl/rs/bird/etc
+    - /srv/fullctl/rs/bird/var/log
+    - /srv/fullctl/rs/bird/var/run
+
+- name: Create bird logging.local
+  template:
+    src: templates/logging.local.j2
+    dest: /srv/fullctl/rs/bird/etc/logging.local
+
+- name: Create .env file for route server container
+  template:
+    src: templates/env.j2
+    dest: /srv/fullctl/rs/.env
+    mode: 0600
+
+- name: Log current connnections to file
+  become: false
+  ansible.builtin.shell: ./birdc.sh show proto | tee >(output=$(cat); [ -n "$output" ] && echo "$output" > bird-showproto-$(date +%Y-%m-%d-%S).log)
+  args:
+    executable: /bin/bash
+  tags:
+    - birdc
+
+- block:
+    - name: checkout containers source
+      git:
+        repo: git@git.20c.com:fullctl/containers.git
+        dest: gen/containers
+        version: "{{ rs_image_tag }}"
+        accept_newhostkey: true
+
+    - name: fetch artifacts
+      get_url:
+        url: "{{ item }}"
+        dest: "gen/containers/artifact.cache/"
+        mode: 0644
+      with_items:
+        - "https://bird.network.cz/download/bird-2.0.10.tar.gz"
+        - "https://github.com/czerwonk/bird_exporter/archive/refs/tags/1.4.1.tar.gz"
+
+    - name: build image
+      shell: |
+        docker build --pull -t {{rs_image_repo}}:{{ rs_image_tag }} -f gen/containers/Dockerfile gen/containers &&
+        docker save {{rs_image_repo}}:{{ rs_image_tag }} -o {{ rs_image_file }}
+      args:
+        #      chdir: gen/containers
+        creates: "{{ rs_image_file }}"
+
+  become: false
+  delegate_to: localhost
+  run_once: true
+  tags:
+    - never
+    - build_rs_image
+
+- block:
+  # assume we're not building, not sure we even need building anymore
+  - name: save container image file
+    shell: |
+      podman pull {{ rs_image_url }}
+      podman save {{ rs_image_url }} > {{ rs_image_file }}
+
+  become: false
+  delegate_to: localhost
+  run_once: true
+  tags:
+    - make_rs_image
+
+- name: Copy container image to remote server
+  copy:
+    src: "{{ rs_image_file }}"
+    dest: "{{ rs_image_dir }}/{{ rs_image_file }}"
+  tags:
+    - rs_image
+
+- name: Load container image on remote server
+  become: true
+  command: podman load -i "{{ rs_image_dir }}/{{ rs_image_file }}"
+  tags:
+    - rs_image
+
+- name: Create systemd file for route server container
+  template:
+    src: templates/routeserver.service.j2
+    dest: /etc/systemd/system/fullctl-routeserver.service
+
+- name: Enable and start fullctl-routeserver.service
+  ansible.builtin.systemd:
+    state: started
+    name: fullctl-routeserver.service
+    enabled: yes
+    daemon_reload: yes
+
+- name: Create systemd file for bird refresh container
+  template:
+    src: templates/birdrefresh.service.j2
+    dest: /etc/systemd/system/fullctl-birdrefresh.service
+
+- name: Enable and start fullctl-birdrefresh.service
+  ansible.builtin.systemd:
+    state: started
+    name: fullctl-birdrefresh.service
+    enabled: yes
+    daemon_reload: yes

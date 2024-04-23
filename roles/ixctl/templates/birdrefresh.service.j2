@@ -1,0 +1,36 @@
+[Unit]
+Description=fullctl-birdrefresh.service
+Documentation=https://docs.fullctl.com
+Wants=network-online.target
+Requires=fullctl-routeserver.service
+After=network-online.target fullctl-routeserver.service
+RequiresMountsFor=%t/containers
+
+[Service]
+Environment=PODMAN_SYSTEMD_UNIT=%n
+{% if PROXY %}
+Environment=http_proxy="{{ PROXY }}"
+Environment=https_proxy="{{ PROXY }}"
+{% endif %}
+
+Restart=always
+TimeoutStopSec=70
+ExecStartPre=/bin/rm -f %t/%n.ctr-id
+ExecStart=/usr/bin/podman run \
+	--cidfile=%t/%n.ctr-id \
+	--cgroups=no-conmon \
+	--sdnotify=conmon \
+	-d -it \
+	--replace \
+	--env-file /srv/fullctl/rs/.env \
+	-v /srv/fullctl/rs/bird/etc:/srv/bird/etc:Z \
+	-v /srv/fullctl/rs/bird/var:/srv/bird/var:Z \
+	--name fullctl_birdrefresh \
+	{{ rs_image_url }} watch_config
+ExecStop=/usr/bin/podman stop --ignore --cidfile=%t/%n.ctr-id
+ExecStopPost=/usr/bin/podman rm -f --ignore --cidfile=%t/%n.ctr-id
+Type=notify
+NotifyAccess=all
+
+[Install]
+WantedBy=default.target

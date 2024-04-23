@@ -1,0 +1,23 @@
+galaxy_info:
+  author: Martin Komon
+  description: An Ansible role for deploying a route server
+  company: FullCtl
+  license: Apache
+  min_ansible_version: 2
+  platforms:
+  - name: EL
+    versions:
+      - all
+  - name: Fedora
+    versions:
+      - all
+  - name: Ubuntu
+    versions:
+      - all
+  - name: Debian
+    versions:
+      - all
+  categories:
+    - system
+dependencies: []
+

@@ -1,0 +1,27 @@
+---
+FULLCTL_ORG: "<Your FullCtl ORG (def)>"
+FULLCTL_IXP: "<Your ixCtl IXP (def)>"
+RS_IDENTIFIER: "<your rs identifer from ixCtl (def)>"
+FULLCTL_API_KEY: "<your FullCtl personal or org API key (def)>"
+PROXY: ""
+
+firewalld_zone: peering
+
+# image - leave it split up so we can easily override tags per host
+rs_image_registry: ghcr.io
+rs_image_repo: fullctl/routeserver
+
+# error if tag isn't set
+# rs_image_tag: latest
+
+# legacy for templates
+RS_IMAGE: "{{ rs_image_url }}"
+
+rs_image_url: "{{ rs_image_registry }}/{{ rs_image_repo }}:{{ rs_image_tag }}"
+rs_image_dir: /tmp
+rs_image_file: "rs_{{ rs_image_tag }}.tar"
+
+rs_log_maxsize: 500M
+
+extra_env: {}
+vault_env: {}

@@ -1,0 +1,6 @@
+---
+ORGANIZATION: "<Your FullCtl ORG>"
+IXP: "<Your ixCtl IXP>"
+RS_IDENTIFIER: "<your rs identifer from ixCtl>"
+API_KEY: "<your FullCtl personal or org API key>"
+RS_IMAGE: "localhost/fullctl/routeserver"
