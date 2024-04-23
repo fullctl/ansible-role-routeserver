@@ -23,7 +23,7 @@ Shared routeserver env is defined in `group_vars/rs.yaml`, at minimum you need t
 ---
 rs_image_registry: ghcr.io
 rs_image_repo: fullctl/routeserver
-rs_image_tag: 0.8.0-bird-2.0.10
+rs_image_tag: 0.8.0-bird-2.14
 ```
 
 Additionally each routeserver has its own env defined in `host_vars/<rs-host-name>.yaml`, this is used to store values such as heartbeat URLs, which should be stored as a vault.
