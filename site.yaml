@@ -3,6 +3,6 @@
   hosts: rs
   become: true
   roles:
-    - role: ixctl
+    - role: routeserver
   tags:
     - rs
