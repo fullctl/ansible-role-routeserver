@@ -83,7 +83,7 @@
 - block:
     - name: checkout containers source
       git:
-        repo: git@git.20c.com:fullctl/containers.git
+        repo: "{{ rs_build_repo }}"
         dest: gen/containers
         version: "{{ rs_image_tag }}"
         accept_newhostkey: true
@@ -111,6 +111,8 @@
   tags:
     - never
     - build_rs_image
+  when:
+    - rs_build_repo is defined
 
 - block:
   # assume we're not building, not sure we even need building anymore

@@ -7,6 +7,9 @@ PROXY: ""
 
 firewalld_zone: peering
 
+# define if building the container locally
+# rs_build_repo: "<git repo>"
+
 # image - leave it split up so we can easily override tags per host
 rs_image_registry: ghcr.io
 rs_image_repo: fullctl/routeserver
