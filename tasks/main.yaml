@@ -4,10 +4,6 @@
   ansible.builtin.yum:
     name:
       - podman
-#      - docker
-#      - wget
-#      - git
-#      - vim
     state: present
 
 - name: Set timezone to UTC

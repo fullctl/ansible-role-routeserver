@@ -1,5 +1,0 @@
----
-# this should be a vault
-vault_env:
-  HEARTBEAT_URL_BIRD: ""
-  HEARTBEAT_URL_CONFIG: ""

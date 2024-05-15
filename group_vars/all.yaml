@@ -1,5 +1,0 @@
----
-# these valus should be secured in a vault
-FULLCTL_ORG: test_org
-FULLCTL_IXP: test_org_ix
-FULLCTL_API_KEY: xxx

@@ -1,8 +1,0 @@
----
-- name: Configure Netbox Instances
-  hosts: rs
-  become: true
-  roles:
-    - role: routeserver
-  tags:
-    - rs
