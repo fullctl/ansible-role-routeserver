@@ -14,6 +14,9 @@ firewalld_zone: peering
 rs_image_registry: ghcr.io
 rs_image_repo: fullctl/routeserver
 
+# location for birdc wrapper script
+rs_script_path: /usr/local/bin
+
 # error if tag isn't set
 # rs_image_tag: latest
 

@@ -47,7 +47,7 @@
   become: false
   ansible.builtin.copy:
     src: birdc.sh
-    dest: birdc.sh
+    dest: "{{ rs_script_path }}/birdc.sh"
     mode: '0755'
   tags:
     - birdc
