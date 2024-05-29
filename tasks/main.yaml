@@ -147,7 +147,7 @@
 
 - name: Enable and start fullctl-routeserver.service
   ansible.builtin.systemd:
-    state: started
+    state: restarted
     name: fullctl-routeserver.service
     enabled: yes
     daemon_reload: yes
@@ -159,7 +159,7 @@
 
 - name: Enable and start fullctl-birdrefresh.service
   ansible.builtin.systemd:
-    state: started
+    state: restarted
     name: fullctl-birdrefresh.service
     enabled: yes
     daemon_reload: yes
