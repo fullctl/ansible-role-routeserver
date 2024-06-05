@@ -44,7 +44,7 @@
     - logrotate
 
 - name: Copy birdc.sh script to remote host
-  become: false
+  become: true
   ansible.builtin.copy:
     src: birdc.sh
     dest: "{{ rs_script_path }}/birdc.sh"
@@ -73,7 +73,7 @@
     mode: 0600
 
 - name: Log current connnections to file
-  become: true
+  become: false
   ansible.builtin.shell: ./birdc.sh show proto | tee >(output=$(cat); [ -n "$output" ] && echo "$output" > bird-showproto-$(date +%Y-%m-%d-%S).log)
   args:
     executable: /bin/bash
