@@ -73,7 +73,7 @@
     mode: 0600
 
 - name: Log current connnections to file
-  become: false
+  become: true
   ansible.builtin.shell: ./birdc.sh show proto | tee >(output=$(cat); [ -n "$output" ] && echo "$output" > bird-showproto-$(date +%Y-%m-%d-%S).log)
   args:
     executable: /bin/bash
