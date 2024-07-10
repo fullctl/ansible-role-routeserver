@@ -16,6 +16,7 @@ rs_image_repo: fullctl/routeserver
 
 # location for birdc wrapper script
 rs_script_path: /usr/local/bin
+rs_config_path: /srv/fullctl/rs
 
 # error if tag isn't set
 # rs_image_tag: latest

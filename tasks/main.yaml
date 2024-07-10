@@ -29,11 +29,20 @@
   tags:
     - fw
 
+- name: Configure additional directories in /srv
+  file:
+    path: "{{ item }}"
+    state: directory
+  with_items:
+    - "{{ rs_config_path }}/bird/etc"
+    - "{{ rs_config_path }}/bird/var/log"
+    - "{{ rs_config_path }}/bird/var/run"
+
 - name: Create logrotate config for BIRD log file
   ansible.builtin.copy:
     dest: /etc/logrotate.d/bird
     content: |
-      /srv/fullctl/rs/bird/var/log/bird.log {
+      {{ rs_config_path }}/bird/var/log/bird.log {
           maxsize "{{ rs_log_maxsize }}"
           weekly
           rotate 4
@@ -52,24 +61,26 @@
   tags:
     - birdc
 
-- name: Configure additional directories in /srv
-  file:
-    path: "{{ item }}"
-    state: directory
-  with_items:
-    - /srv/fullctl/rs/bird/etc
-    - /srv/fullctl/rs/bird/var/log
-    - /srv/fullctl/rs/bird/var/run
+- name: Check for existing bird.conf
+  stat:
+    path: "{{ rs_config_path }}/bird/etc/bird.conf"
+  register: config_check
+
+- name: Copy initial bird.conf 
+  copy:
+    src: bird.conf 
+    dest: "{{ rs_config_path }}/bird/etc/bird.conf"
+  when: not config_check.stat.exists
 
 - name: Create bird logging.local
   template:
     src: templates/logging.local.j2
-    dest: /srv/fullctl/rs/bird/etc/logging.local
+    dest: "{{ rs_config_path }}/bird/etc/logging.local"
 
 - name: Create .env file for route server container
   template:
     src: templates/env.j2
-    dest: /srv/fullctl/rs/.env
+    dest: "{{ rs_config_path }}/.env"
     mode: 0600
 
 - name: Log current connnections to file
